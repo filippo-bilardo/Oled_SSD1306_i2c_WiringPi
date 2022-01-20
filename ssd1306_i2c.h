@@ -42,9 +42,7 @@ All text above, and the splash screen must be included in any redistribution
     sized framebuffer, etc.
 
     SSD1306_128_64  128x64 pixel display
-
     SSD1306_128_32  128x32 pixel display
-
     SSD1306_96_16
 
     -----------------------------------------------------------------------*/
@@ -161,4 +159,4 @@ void ssd1306_setTextSize(int s);
 void ssd1306_drawString(char *str);
 void ssd1306_drawChar(int x, int y, unsigned char c, int color, int size);
 
-#endif				/* _SSD1306_I2C_H_ */
+#endif	// _SSD1306_I2C_H_
