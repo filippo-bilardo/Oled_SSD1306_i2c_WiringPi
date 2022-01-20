@@ -2,6 +2,7 @@
 SSD1306 I2C Library for Raspberry Pi.
 Based on Adafruit SSD1306 Arduino library. Some functions came from Adafruit GFX lib. 
 
+Modified by Filippo Bilardo - 20/01/22
 Modified by Ilia Penev
 Tested on Raspberry Pi 2 with 0.96 Yellow/Blue OLED
 *********************************************************************/
