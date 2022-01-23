@@ -1,5 +1,7 @@
 /******
 Demo for ssd1306 i2c driver for  Raspberry Pi 
+https://github.com/iliapenev/ssd1306_i2c 
+gcc demo.c ssd1306_i2c.c -lwiringPi -o demo
 ******/
 
 #include "ssd1306_i2c.h"
@@ -22,7 +24,7 @@ void main() {
 	delay(5000);
 
 	ssd1306_clearDisplay();
-	ssd1306_fillRect(10,10, 50, 20, WHITE);
+	ssd1306_fillRect(10,10, 50, 20, WHITE);gcc demo.c ssd1306_i2c.c -lwiringPi
 	ssd1306_fillRect(80, 10, 130, 50, WHITE);
 	ssd1306_display();
 }
