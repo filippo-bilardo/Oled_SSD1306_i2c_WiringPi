@@ -9,7 +9,7 @@ g++ demo.cpp ssd1306.cpp -lwiringPi -o demo
 
 FB_SSD1306 disp;
 
-int main(void) {
+int main(void) {ls
 
 	disp.begin(SSD1306_SWITCHCAPVCC, SSD1306_I2C_ADDRESS);
 
