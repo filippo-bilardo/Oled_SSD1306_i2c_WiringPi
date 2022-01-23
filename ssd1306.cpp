@@ -9,6 +9,7 @@ Tested on Raspberry Pi 2 with 0.96 Yellow/Blue OLED
 *********************************************************************/
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <wiringPiI2C.h>
 #include "ssd1306.h"
@@ -18,13 +19,13 @@ Tested on Raspberry Pi 2 with 0.96 Yellow/Blue OLED
 #define false 0
 #define rotation 0
 
-#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+#define pgm_read_byte(addr) (*(const uint8_t *)(addr))
 
-int cursor_y = 0;
-int cursor_x = 0;
+int16_t cursor_y = 0;
+int16_t cursor_x = 0;
 
 // the memory buffer for the LCD. Displays Adafruit logo
-int buffer[SSD1306_LCDWIDTH * SSD1306_LCDHEIGHT / 8] = {
+static uint8_t buffer[SSD1306_LCDWIDTH * SSD1306_LCDHEIGHT / 8] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	0x00, 0x00, 0x00, 0x00,
@@ -95,21 +96,22 @@ int buffer[SSD1306_LCDWIDTH * SSD1306_LCDHEIGHT / 8] = {
 #endif
 };
 
-int _vccstate;
-int i2cd;
-int textsize = 1;
-int wrap = 1;
+int16_t _vccstate;
+int16_t i2cd;
+int16_t textsize = 1;
+int16_t wrap = 1;
 
-#define ssd1306_swap(a, b) { int t = a; a = b; b = t; }
+#define swap(a, b) { int16_t t = a; a = b; b = t; }
 
-void FB_SSD1306::ssd1306_command(unsigned int c)
+FB_SSD1306::FB_SSD1306(void){;}
+void FB_SSD1306::ssd1306_command(uint8_t c)
 {
 	// I2C
-	unsigned int control = 0x00;	// Co = 0, D/C = 0
+	int16_t control = 0x00;	// Co = 0, D/C = 0
 	wiringPiI2CWriteReg8(i2cd, control, c);
 }
 
-void FB_SSD1306::begin(unsigned int vccstate, unsigned int i2caddr)
+void FB_SSD1306::begin(uint8_t vccstate, uint8_t i2caddr)
 { // Init SSD1306
 	// I2C Init
 
@@ -185,7 +187,7 @@ void FB_SSD1306::begin(unsigned int vccstate, unsigned int i2caddr)
 	ssd1306_command(SSD1306_DISPLAYON);	// --turn on oled panel
 }
 
-void FB_SSD1306::drawPixel(int x, int y, unsigned int color)
+void FB_SSD1306::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
 	if ((x < 0) || (x >= WIDTH) || (y < 0) || (y >= HEIGHT))
 		return;
@@ -193,7 +195,7 @@ void FB_SSD1306::drawPixel(int x, int y, unsigned int color)
 	// check rotation, move pixel around if necessary
 	switch (rotation) {
 	case 1:
-		ssd1306_swap(x, y);
+		swap(x, y);
 		x = WIDTH - x - 1;
 		break;
 	case 2:
@@ -201,7 +203,7 @@ void FB_SSD1306::drawPixel(int x, int y, unsigned int color)
 		y = HEIGHT - y - 1;
 		break;
 	case 3:
-		ssd1306_swap(x, y);
+		swap(x, y);
 		y = HEIGHT - y - 1;
 		break;
 	}
@@ -222,11 +224,11 @@ void FB_SSD1306::drawPixel(int x, int y, unsigned int color)
 void FB_SSD1306::clearDisplay(void)
 { // clear everything
 	memset(buffer, 0,
-	       (SSD1306_LCDWIDTH * SSD1306_LCDHEIGHT / 8) * sizeof(int));
+	       (SSD1306_LCDWIDTH * SSD1306_LCDHEIGHT / 8) * sizeof(int16_t));
 	cursor_y = 0;
 	cursor_x = 0;
 }
-void FB_SSD1306::invertDisplay(unsigned int i)
+void FB_SSD1306::invertDisplay(uint8_t i)
 {
 	if (i) {
 		ssd1306_command(SSD1306_INVERTDISPLAY);
@@ -238,9 +240,7 @@ void FB_SSD1306::display(void)
 {
 	ssd1306_command(SSD1306_COLUMNADDR);
 	ssd1306_command(0);	// Column start address (0 = reset)
-	ssd1306_command(SSD1306_LCDWIDTH - 1);	// Column end address (127 
-	// = reset)
-
+	ssd1306_command(SSD1306_LCDWIDTH - 1);	// Column end address (127 // = reset)
 	ssd1306_command(SSD1306_PAGEADDR);
 	ssd1306_command(0);	// Page start address (0 = reset)
 #if SSD1306_LCDHEIGHT == 64
@@ -254,7 +254,7 @@ void FB_SSD1306::display(void)
 #endif
 
 	// I2C
-	int i;
+	int16_t i;
 	for (i = 0; i < (SSD1306_LCDWIDTH * SSD1306_LCDHEIGHT / 8); i++) {
 		wiringPiI2CWriteReg8(i2cd, 0x40, buffer[i]); 
 		//This sends byte by byte. 
@@ -262,7 +262,7 @@ void FB_SSD1306::display(void)
 		//Should be optimized
 	}
 }
-void FB_SSD1306::startscrollright(unsigned int start, unsigned int stop)
+void FB_SSD1306::startscrollright(uint8_t start, uint8_t stop)
 {// startscrollright
 // Activate a right handed scroll for rows start through stop
 // Hint, the display is 16 rows tall. To scroll the whole display, run:
@@ -276,7 +276,7 @@ void FB_SSD1306::startscrollright(unsigned int start, unsigned int stop)
 	ssd1306_command(0XFF);
 	ssd1306_command(SSD1306_ACTIVATE_SCROLL);
 }
-void FB_SSD1306::startscrollleft(unsigned int start, unsigned int stop)
+void FB_SSD1306::startscrollleft(uint8_t start, uint8_t stop)
 {// startscrollleft
 // Activate a right handed scroll for rows start through stop
 // Hint, the display is 16 rows tall. To scroll the whole display, run:
@@ -290,7 +290,7 @@ void FB_SSD1306::startscrollleft(unsigned int start, unsigned int stop)
 	ssd1306_command(0XFF);
 	ssd1306_command(SSD1306_ACTIVATE_SCROLL);
 }
-void FB_SSD1306::startscrolldiagright(unsigned int start, unsigned int stop)
+void FB_SSD1306::startscrolldiagright(uint8_t start, uint8_t stop)
 {// startscrolldiagright
 // Activate a diagonal scroll for rows start through stop
 // Hint, the display is 16 rows tall. To scroll the whole display, run:
@@ -306,7 +306,7 @@ void FB_SSD1306::startscrolldiagright(unsigned int start, unsigned int stop)
 	ssd1306_command(0X01);
 	ssd1306_command(SSD1306_ACTIVATE_SCROLL);
 }
-void FB_SSD1306::startscrolldiagleft(unsigned int start, unsigned int stop)
+void FB_SSD1306::startscrolldiagleft(uint8_t start, uint8_t stop)
 {// startscrolldiagleft
 // Activate a diagonal scroll for rows start through stop
 // Hint, the display is 16 rows tall. To scroll the whole display, run:
@@ -326,11 +326,11 @@ void FB_SSD1306::stopscroll(void)
 {
 	ssd1306_command(SSD1306_DEACTIVATE_SCROLL);
 }
-void FB_SSD1306::dim(unsigned int dim)
+void FB_SSD1306::dim(uint8_t dim)
 {// Dim the display
 // dim = true: display is dimmed
 // dim = false: display is normal
-	unsigned int contrast;
+	uint8_t contrast;
 
 	if (dim) {
 		contrast = 0;	// Dimmed display
@@ -346,9 +346,9 @@ void FB_SSD1306::dim(unsigned int dim)
 	ssd1306_command(SSD1306_SETCONTRAST);
 	ssd1306_command(contrast);
 }
-void FB_SSD1306::drawFastHLine(int x, int y, int w, unsigned int color)
+void FB_SSD1306::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
 {
-	unsigned int bSwap = false;
+	uint8_t bSwap = false;
 	switch (rotation) {
 	case 0:
 		// 0 degree rotation, do nothing
@@ -356,7 +356,7 @@ void FB_SSD1306::drawFastHLine(int x, int y, int w, unsigned int color)
 	case 1:
 		// 90 degree rotation, swap x & y for rotation, then invert x
 		bSwap = true;
-		ssd1306_swap(x, y);
+		swap(x, y);
 		x = WIDTH - x - 1;
 		break;
 	case 2:
@@ -370,21 +370,21 @@ void FB_SSD1306::drawFastHLine(int x, int y, int w, unsigned int color)
 		// 270 degree rotation, swap x & y for rotation, then invert y and 
 		// adjust y for w (not to become h)
 		bSwap = true;
-		ssd1306_swap(x, y);
+		swap(x, y);
 		y = HEIGHT - y - 1;
 		y -= (w - 1);
 		break;
 	}
 
 	if (bSwap) {
-		ssd1306_drawFastVLineInternal(x, y, w, color);
+		drawFastVLineInternal(x, y, w, color);
 	} else {
-		ssd1306_drawFastHLineInternal(x, y, w, color);
+		drawFastHLineInternal(x, y, w, color);
 	}
 }
-void FB_SSD1306::drawFastVLine(int x, int y, int h, unsigned int color)
+void FB_SSD1306::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 {
-	unsigned int bSwap = false;
+	uint8_t bSwap = false;
 	switch (rotation) {
 	case 0:
 		break;
@@ -392,7 +392,7 @@ void FB_SSD1306::drawFastVLine(int x, int y, int h, unsigned int color)
 		// 90 degree rotation, swap x & y for rotation, then invert x and
 		// adjust x for h (now to become w)
 		bSwap = true;
-		ssd1306_swap(x, y);
+		swap(x, y);
 		x = WIDTH - x - 1;
 		x -= (h - 1);
 		break;
@@ -406,18 +406,18 @@ void FB_SSD1306::drawFastVLine(int x, int y, int h, unsigned int color)
 	case 3:
 		// 270 degree rotation, swap x & y for rotation, then invert y
 		bSwap = true;
-		ssd1306_swap(x, y);
+		swap(x, y);
 		y = HEIGHT - y - 1;
 		break;
 	}
 
 	if (bSwap) {
-		ssd1306_drawFastHLineInternal(x, y, h, color);
+		drawFastHLineInternal(x, y, h, color);
 	} else {
-		ssd1306_drawFastVLineInternal(x, y, h, color);
+		drawFastVLineInternal(x, y, h, color);
 	}
 }
-void FB_SSD1306::fillRect(int x, int y, int w, int h, int fillcolor)
+void FB_SSD1306::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t fillcolor)
 {
 
 	// Bounds check
@@ -435,7 +435,7 @@ void FB_SSD1306::fillRect(int x, int y, int w, int h, int fillcolor)
 
 	switch (rotation) {
 	case 1:
-		swap_values(x, y);
+		swap(x, y); //swap_values
 		x = WIDTH - x - 1;
 		break;
 	case 2:
@@ -443,19 +443,19 @@ void FB_SSD1306::fillRect(int x, int y, int w, int h, int fillcolor)
 		y = HEIGHT - y - 1;
 		break;
 	case 3:
-		swap_values(x, y);
+		swap(x, y); //swap_values
 		y = HEIGHT - y - 1;
 		break;
 	}
-	int i;
+	int16_t i;
 	for (i = 0; i < h; i++)
-		ssd1306_drawFastHLine(x, y + i, w, fillcolor);
+		drawFastHLine(x, y + i, w, fillcolor);
 }
-void FB_SSD1306::setTextSize(int s)
+void FB_SSD1306::setTextSize(int16_t s)
 {
 	textsize = (s > 0) ? s : 1;
 }
-void FB_SSD1306::write(int c)
+void FB_SSD1306::write(int16_t c)
 {
 
 	if (c == '\n') {
@@ -464,7 +464,7 @@ void FB_SSD1306::write(int c)
 	} else if (c == '\r') {
 		// skip em
 	} else {
-		ssd1306_drawChar(cursor_x, cursor_y, c, WHITE, textsize);
+		drawChar(cursor_x, cursor_y, c, WHITE, textsize);
 		cursor_x += textsize * 6;
 		if (wrap && (cursor_x > (WIDTH - textsize * 6))) {
 			cursor_y += textsize * 8;
@@ -472,14 +472,14 @@ void FB_SSD1306::write(int c)
 		}
 	}
 }
-void FB_SSD1306::drawString(char *str)
+void FB_SSD1306::drawString(char const *str)
 {
-	int i, end;
+	int16_t i, end;
 	end = strlen(str);
 	for (i = 0; i < end; i++)
-		ssd1306_write(str[i]);
+		write(str[i]);
 }
-void FB_SSD1306::drawChar(int x, int y, unsigned char c, int color, int size)
+void FB_SSD1306::drawChar(int16_t x, int16_t y, uint8_t c, int16_t color, int16_t size)
 {// Draw a character
 
 	if ((x >= WIDTH) ||	// Clip right
@@ -487,10 +487,10 @@ void FB_SSD1306::drawChar(int x, int y, unsigned char c, int color, int size)
 	    ((x + 6 * size - 1) < 0) ||	// Clip left
 	    ((y + 8 * size - 1) < 0))	// Clip top
 		return;
-	int i;
-	int j;
+	int16_t i;
+	int16_t j;
 	for (i = 0; i < 6; i++) {
-		int line;
+		int16_t line;
 		if (i == 5)
 			line = 0x0;
 		else
@@ -498,9 +498,9 @@ void FB_SSD1306::drawChar(int x, int y, unsigned char c, int color, int size)
 		for (j = 0; j < 8; j++) {
 			if (line & 0x1) {
 				if (size == 1)	// default size
-					ssd1306_drawPixel(x + i, y + j, color);
+					drawPixel(x + i, y + j, color);
 				else {	// big size
-					ssd1306_fillRect(x + (i * size),
+					fillRect(x + (i * size),
 							 y + (j * size), size,
 							 size, color);
 				}
@@ -510,7 +510,7 @@ void FB_SSD1306::drawChar(int x, int y, unsigned char c, int color, int size)
 	}
 }
 
-void FB_SSD1306::drawFastHLineInternal(int x, int y, int w, unsigned int color)
+void FB_SSD1306::drawFastHLineInternal(int16_t x, int16_t y, int16_t w, uint16_t color)
 {
 	// Do bounds/limit checks
 	if (y < 0 || y >= HEIGHT) {
@@ -530,13 +530,13 @@ void FB_SSD1306::drawFastHLineInternal(int x, int y, int w, unsigned int color)
 		return;
 	}
 	// set up the pointer for movement through the buffer
-	unsigned int *pBuf = buffer;
+	uint8_t *pBuf = buffer;
 	// adjust the buffer pointer for the current row
 	pBuf += ((y / 8) * SSD1306_LCDWIDTH);
 	// and offset x columns in
 	pBuf += x;
 
-	unsigned int mask = 1 << (y & 7);
+	uint8_t mask = 1 << (y & 7);
 
 	switch (color) {
 	case WHITE:
@@ -557,7 +557,7 @@ void FB_SSD1306::drawFastHLineInternal(int x, int y, int w, unsigned int color)
 		break;
 	}
 }
-void FB_SSD1306::git
+void FB_SSD1306::drawFastVLineInternal(int16_t x, int16_t __y, int16_t __h, uint16_t color)
 {
 
 	// do nothing if we're off the left or right side of the screen
@@ -582,11 +582,11 @@ void FB_SSD1306::git
 	}
 	// this display doesn't need ints for coordinates, use local byte
 	// registers for faster juggling
-	unsigned int y = __y;
-	unsigned int h = __h;
+	uint8_t y = __y;
+	uint8_t h = __h;
 
 	// set up the pointer for fast movement through the buffer
-	unsigned int *pBuf = buffer;
+	uint8_t *pBuf = buffer;
 	// adjust the buffer pointer for the current row
 	pBuf += ((y / 8) * SSD1306_LCDWIDTH);
 	// and offset x columns in
@@ -594,17 +594,17 @@ void FB_SSD1306::git
 
 	// do the first partial byte, if necessary - this requires some
 	// masking
-	unsigned int mod = (y & 7);
+	uint8_t mod = (y & 7);
 	if (mod) {
 		// mask off the high n bits we want to set
 		mod = 8 - mod;
 
 		// note - lookup table results in a nearly 10% performance
 		// improvement in fill* functions
-		// register unsigned int mask = ~(0xFF >> (mod));
-		static unsigned int premask[8] =
+		// register uint8_t mask = ~(0xFF >> (mod));
+		static uint8_t premask[8] =
 		    { 0x00, 0x80, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE };
-		unsigned int mask = premask[mod];
+		uint8_t mask = premask[mod];
 
 		// adjust the mask if we're not going to reach the end of this
 		// byte
@@ -652,7 +652,7 @@ void FB_SSD1306::git
 			while (h >= 8);
 		} else {
 			// store a local value to work with
-			register unsigned int val = (color == WHITE) ? 255 : 0;
+			register uint8_t val = (color == WHITE) ? 255 : 0;
 
 			do {
 				// write our value in
@@ -673,12 +673,12 @@ void FB_SSD1306::git
 		mod = h & 7;
 		// this time we want to mask the low bits of the byte, vs the high 
 		// bits we did above
-		// register unsigned int mask = (1 << mod) - 1;
+		// register uint8_t mask = (1 << mod) - 1;
 		// note - lookup table results in a nearly 10% performance
 		// improvement in fill* functions
-		static unsigned int postmask[8] =
+		static uint8_t postmask[8] =
 		    { 0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F };
-		unsigned int mask = postmask[mod];
+		uint8_t mask = postmask[mod];
 		switch (color) {
 		case WHITE:
 			*pBuf |= mask;

@@ -3,27 +3,11 @@ SSD1306 I2C Library for Raspberry Pi.
 Based on Adafruit SSD1306 Arduino library. Some functions came from Adafruit GFX lib. 
 
 Modified by Filippo Bilardo - 20/01/22
-Modified by Ilia Penev
+Modified by Ilia Penev https://github.com/iliapenev/ssd1306_i2c
+Created by Adafruit https://github.com/adafruit/FB_SSD1306
 Tested on Raspberry Pi 2 with 0.96 Yellow/Blue OLED
 *********************************************************************/
 
-/*********************************************************************
-This is a library for our Monochrome OLEDs based on SSD1306 drivers
-
-  Pick one up today in the adafruit shop!
-  ------> http://www.adafruit.com/category/63_98
-
-These displays use SPI to communicate, 4 or 5 pins are required to
-interface
-
-Adafruit invests time and resources providing this open source code,
-please support Adafruit and open-source hardware by purchasing
-products from Adafruit!
-
-Written by Limor Fried/Ladyada  for Adafruit Industries.
-BSD license, check license.txt for more information
-All text above, and the splash screen must be included in any redistribution
-*********************************************************************/
 #ifndef SSD1306_I2C_H_
 #define SSD1306_I2C_H_
 
@@ -57,38 +41,38 @@ typedef bool boolean;
 /*=========================================================================*/
 
 #if defined SSD1306_128_32
-        #define WIDTH 128
-        #define HEIGHT 32
+  #define WIDTH 128
+  #define HEIGHT 32
 #endif
 
 #if defined SSD1306_128_64
-        #define WIDTH 128
-        #define HEIGHT 64
+  #define WIDTH 128
+  #define HEIGHT 64
 #endif
 
 #if defined SSD1306_96_16
-        #define WIDTH 96
-        #define HEIGHT 16
+  #define WIDTH 96
+  #define HEIGHT 16
 #endif
 
 #if defined SSD1306_128_64 && defined SSD1306_128_32
-        #error "Only one SSD1306 display can be specified at once in SSD1306.h"
+  #error "Only one SSD1306 display can be specified at once in SSD1306.h"
 #endif
 #if !defined SSD1306_128_64 && !defined SSD1306_128_32 && !defined SSD1306_96_16
-        #error "At least one SSD1306 display must be specified in SSD1306.h"
+  #error "At least one SSD1306 display must be specified in SSD1306.h"
 #endif
 
 #if defined SSD1306_128_64
-        #define SSD1306_LCDWIDTH                  128
-        #define SSD1306_LCDHEIGHT                 64
+  #define SSD1306_LCDWIDTH    128
+  #define SSD1306_LCDHEIGHT   64
 #endif
 #if defined SSD1306_128_32
-        #define SSD1306_LCDWIDTH                  128
-        #define SSD1306_LCDHEIGHT                 32
+  #define SSD1306_LCDWIDTH    128
+  #define SSD1306_LCDHEIGHT   32
 #endif
 #if defined SSD1306_96_16
-        #define SSD1306_LCDWIDTH                  96
-        #define SSD1306_LCDHEIGHT                 16
+  #define SSD1306_LCDWIDTH    96
+  #define SSD1306_LCDHEIGHT   16
 #endif
 
 #define SSD1306_SETCONTRAST 0x81
@@ -139,42 +123,33 @@ typedef bool boolean;
 
 class FB_SSD1306 {
  public:
-  //Adafruit_SSD1306(int8_t SID, int8_t SCLK, int8_t DC, int8_t RST, int8_t CS);
-  //Adafruit_SSD1306(int8_t DC, int8_t RST, int8_t CS);
-  //Adafruit_SSD1306(int8_t RST);
+  FB_SSD1306(void);
 
-  void ssd1306_command(uint8_t c);
-  //void ssd1306_data(uint8_t c);
-		void begin(uint8_t switchvcc = SSD1306_SWITCHCAPVCC, uint8_t i2caddr = SSD1306_I2C_ADDRESS, bool reset=true);
+  void begin(uint8_t switchvcc = SSD1306_SWITCHCAPVCC, uint8_t i2caddr = SSD1306_I2C_ADDRESS);
   
   void clearDisplay(void);
   void invertDisplay(uint8_t i);
   void display();
-
   void startscrollright(uint8_t start, uint8_t stop);
   void startscrollleft(uint8_t start, uint8_t stop);
-
   void startscrolldiagright(uint8_t start, uint8_t stop);
   void startscrolldiagleft(uint8_t start, uint8_t stop);
   void stopscroll(void);
-
-  void dim(boolean dim);
-
+  void dim(uint8_t dim);
   void drawPixel(int16_t x, int16_t y, uint16_t color);
-
   void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
   void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
-
-		void fillRect(int x, int y, int w, int h, int fillcolor);
-
-		void setTextSize(int s);
-		void drawString(char *str);
-		void drawChar(int x, int y, unsigned char c, int color, int size);
+  void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t fillcolor);
+  void setTextSize(int16_t s);
+  void drawString(char const *str);
+  void drawChar(int16_t x, int16_t y, uint8_t c, int16_t color, int16_t size);
 
  private:
   //int8_t _i2caddr, _vccstate, sid, sclk, dc, rst, cs;
-  void drawFastHLineInternal(int x, int y, int w, unsigned int color);
-  void drawFastVLineInternal(int x, int __y, int __h, unsigned int color);
+  void ssd1306_command(uint8_t c);
+  void drawFastHLineInternal(int16_t x, int16_t y, int16_t w, uint16_t color);
+  void drawFastVLineInternal(int16_t x, int16_t __y, int16_t __h, uint16_t color);
+  void write(int16_t c);
 };
 
 #endif	// _SSD1306_I2C_H_
