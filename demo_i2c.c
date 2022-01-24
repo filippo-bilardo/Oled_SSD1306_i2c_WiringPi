@@ -1,4 +1,4 @@
-/****** bbbb
+/****** 
 Demo for ssd1306 i2c driver for  Raspberry Pi 
 https://github.com/iliapenev/ssd1306_i2c 
 gcc demo_i2c.c ssd1306_i2c.c -lwiringPi -o demo_i2c 
