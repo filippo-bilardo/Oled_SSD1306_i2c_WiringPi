@@ -7,24 +7,6 @@ Modified by Ilia Penev
 Tested on Raspberry Pi 2 with 0.96 Yellow/Blue OLED
 *********************************************************************/
 
-/*********************************************************************
-This is a library for our Monochrome OLEDs based on SSD1306 drivers
-
-  Pick one up today in the adafruit shop!
-  ------> http://www.adafruit.com/category/63_98
-
-These displays use SPI to communicate, 4 or 5 pins are required to
-interface
-
-Adafruit invests time and resources providing this open source code,
-please support Adafruit and open-source hardware by purchasing
-products from Adafruit!
-
-Written by Limor Fried/Ladyada  for Adafruit Industries.
-BSD license, check license.txt for more information
-All text above, and the splash screen below must be included in any redistribution
-*********************************************************************/
-
 #include <stdio.h>
 #include <string.h>
 #include <wiringPiI2C.h>
@@ -115,7 +97,7 @@ int buffer[SSD1306_LCDWIDTH * SSD1306_LCDHEIGHT / 8] = {
 int _vccstate;
 int i2cd;
 
-#define ssd1306_swap(a, b) { int t = a; a = b; b = t; }
+#define swap(a, b) { int t = a; a = b; b = t; }
 
 // the most basic function, set a single pixel
 void ssd1306_drawPixel(int x, int y, unsigned int color)
@@ -126,7 +108,7 @@ void ssd1306_drawPixel(int x, int y, unsigned int color)
 	// check rotation, move pixel around if necessary
 	switch (rotation) {
 	case 1:
-		ssd1306_swap(x, y);
+		swap(x, y);
 		x = WIDTH - x - 1;
 		break;
 	case 2:
@@ -134,7 +116,7 @@ void ssd1306_drawPixel(int x, int y, unsigned int color)
 		y = HEIGHT - y - 1;
 		break;
 	case 3:
-		ssd1306_swap(x, y);
+		swap(x, y);
 		y = HEIGHT - y - 1;
 		break;
 	}
@@ -573,7 +555,7 @@ void ssd1306_drawFastHLine(int x, int y, int w, unsigned int color)
 	case 1:
 		// 90 degree rotation, swap x & y for rotation, then invert x
 		bSwap = true;
-		ssd1306_swap(x, y);
+		swap(x, y);
 		x = WIDTH - x - 1;
 		break;
 	case 2:
@@ -587,7 +569,7 @@ void ssd1306_drawFastHLine(int x, int y, int w, unsigned int color)
 		// 270 degree rotation, swap x & y for rotation, then invert y and 
 		// adjust y for w (not to become h)
 		bSwap = true;
-		ssd1306_swap(x, y);
+		swap(x, y);
 		y = HEIGHT - y - 1;
 		y -= (w - 1);
 		break;
@@ -610,7 +592,7 @@ void ssd1306_drawFastVLine(int x, int y, int h, unsigned int color)
 		// 90 degree rotation, swap x & y for rotation, then invert x and
 		// adjust x for h (now to become w)
 		bSwap = true;
-		ssd1306_swap(x, y);
+		swap(x, y);
 		x = WIDTH - x - 1;
 		x -= (h - 1);
 		break;
@@ -624,7 +606,7 @@ void ssd1306_drawFastVLine(int x, int y, int h, unsigned int color)
 	case 3:
 		// 270 degree rotation, swap x & y for rotation, then invert y
 		bSwap = true;
-		ssd1306_swap(x, y);
+		swap(x, y);
 		y = HEIGHT - y - 1;
 		break;
 	}
@@ -654,7 +636,7 @@ void ssd1306_fillRect(int x, int y, int w, int h, int fillcolor)
 
 	switch (rotation) {
 	case 1:
-		swap_values(x, y);
+		swap(x, y);
 		x = WIDTH - x - 1;
 		break;
 	case 2:
@@ -662,7 +644,7 @@ void ssd1306_fillRect(int x, int y, int w, int h, int fillcolor)
 		y = HEIGHT - y - 1;
 		break;
 	case 3:
-		swap_values(x, y);
+		swap(x, y);
 		y = HEIGHT - y - 1;
 		break;
 	}
