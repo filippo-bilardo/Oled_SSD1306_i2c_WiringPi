@@ -1,0 +1,4 @@
+*.o
+demo_i2c
+a.out
+
